@@ -1,0 +1,36 @@
+.Navbar {
+    background-color: #fb9375 !important;
+    margin: 0;
+    border-bottom-left-radius: 30px;
+    width: 95%;
+}
+.Toolbar {
+    min-height: 80px !important;
+}
+.buttonsign{
+    background-color: #fb9375 !important;
+    outline-color: aliceblue !important;
+    outline-width:1px !important ;
+    font-weight: bold !important
+    
+}
+.buttonlog{
+    background-color: aliceblue !important;
+    color: #fb9375 !important;
+    font-weight: bold !important
+
+}
+.Text-botton{
+    font-weight: bold !important
+}
+.Buttonbar {
+    bottom: 0 !important;
+    width: 100%;
+    background-color: #f36a44 !important;
+    color: white;    
+    padding: 10px !important;
+  }
+.Toolbar2{
+    text-align: center;
+    justify-content: center;
+}
