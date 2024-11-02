@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Box, Typography, TextField, Button, Link } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,6 +8,10 @@ export const Login = () => {
 
     const handleSignUpClick = () => {
         navigate('/signup');
+    };
+    
+    const handleHomeClick = () => {
+        navigate('/Home');
     };
 
     return (
@@ -57,6 +61,7 @@ export const Login = () => {
                 <Button 
                     variant="contained" 
                     fullWidth 
+                    onClick={handleHomeClick}
                     sx={{
                         backgroundColor: '#fb9375',
                         color: 'white',

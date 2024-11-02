@@ -9,6 +9,10 @@ import { Content1stPage } from './component/Maincontent/indexpage'
 import { Meeting } from './component/Page/meeting'
 import { Login } from './component/Page/login'
 import { SignUp } from './component/Page/signup'
+import { MeetingPage } from './component/Maincontent/meetingpage'
+import Menubar from './component/navbar/menubar'
+import ScheduleMeeting from './component/Maincontent/schedulecontent'
+import { Home } from './component/Page/Home'
 
 
 function App() {
@@ -51,7 +55,28 @@ function App() {
                 <SignUp/>
               </div>
             }/>
-      
+
+        <Route path='/Home'
+            element={
+              <div>
+                <Menubar/>
+                <Home/>
+              </div>
+            }/>
+          <Route path='Home/Meeting'
+            element={
+              <div>
+                <Menubar/>
+                <MeetingPage/>
+              </div>
+            }/>
+            <Route path='Home/Schedule'
+            element={
+              <div>
+                <Menubar/>
+                <ScheduleMeeting/>
+              </div>
+            }/>
       </Routes>
     </div>
     
