@@ -1,9 +1,19 @@
 import './styles.css'
 import { AppBar, Button, IconButton, Stack, Toolbar, Typography } from "@mui/material";
 import OndemandVideoIcon from '@mui/icons-material/OndemandVideo';
+import { useNavigate } from 'react-router-dom';
 
 
 export const Navbar=()=>{
+    const navigate = useNavigate()
+
+    const handleLoginClick = () => {
+        navigate('/login'); //ไปที่ path /login
+    };
+    const handleSignUpClick =()=>{
+        navigate('/signup');
+    }
+
     return (
         <AppBar className='Navbar' position="static" >
             <Toolbar className='Toolbar'>
@@ -15,8 +25,8 @@ export const Navbar=()=>{
                 </Typography>
 
                 <Stack direction='row' spacing={2} sx={{ marginLeft: 'auto' }}>
-                <Button className='buttonlog' variant="contained">Login</Button>
-                <Button className='buttonsign' variant="contained">Sign Up</Button>
+                <Button onClick={handleLoginClick} className='buttonlog' variant="contained">Login</Button>
+                <Button onClick={handleSignUpClick} className='buttonsign' variant="contained">Sign Up</Button>
                 </Stack>
             </Toolbar>
         </AppBar>

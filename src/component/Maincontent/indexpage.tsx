@@ -1,7 +1,14 @@
 import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 export const Content1stPage = () => {
+    const navigate = useNavigate();
+
+    const handleJoinClick = () => {
+        navigate('/join'); //ไปที่ path /join
+    };
+
     return (
         <Box sx={{ display: 'flex', padding: 4, gap: 2 }}>
             
@@ -17,7 +24,9 @@ export const Content1stPage = () => {
                     <Button variant="contained" sx={{ backgroundColor: '#fb9375', marginRight: 2 , fontWeight: 'bold', padding: '12px 24px', fontSize: '1.1rem' }}>
                         Get started
                     </Button>
-                    <Button variant="contained" sx={{ backgroundColor: '#fb9375', fontWeight: 'bold', padding: '12px 24px', fontSize: '1.1rem' }}>
+                    <Button variant="contained" 
+                            onClick={handleJoinClick}
+                            sx={{ backgroundColor: '#fb9375', fontWeight: 'bold', padding: '12px 24px', fontSize: '1.1rem' }}>
                         Join Meeting
                     </Button>
                 </Box>
