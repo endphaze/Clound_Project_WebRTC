@@ -13,6 +13,7 @@ import { MeetingPage } from './component/Maincontent/meetingpage'
 import Menubar from './component/navbar/menubar'
 import ScheduleMeeting from './component/Maincontent/schedulecontent'
 import { Home } from './component/Page/Home'
+import { Chat } from './component/Maincontent/chat'
 
 
 function App() {
@@ -75,6 +76,14 @@ function App() {
               <div>
                 <Menubar/>
                 <ScheduleMeeting/>
+              </div>
+            }/>
+
+            <Route path='Home/Chat'
+            element={
+              <div>
+                <Menubar/>
+                <Chat/>
               </div>
             }/>
       </Routes>

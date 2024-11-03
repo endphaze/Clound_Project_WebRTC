@@ -11,6 +11,9 @@ export const Menubar = () => {
     const handleHomeClick=()=>{
         navigate('/Home')
     }
+    const handleChatClick=()=>{
+        navigate('/Home/Chat')
+    }
     
     return (
         <AppBar className='Navbar' position="static">
@@ -31,7 +34,7 @@ export const Menubar = () => {
                     <Button onClick={handleMeetingClick} variant="text" color="inherit" sx={{ fontWeight: 'bold' }}>
                         MEETINGS
                     </Button>
-                    <Button variant="text" color="inherit" sx={{ fontWeight: 'bold' }}>
+                    <Button onClick={handleChatClick} variant="text" color="inherit" sx={{ fontWeight: 'bold' }}>
                         CHATS
                     </Button>
                     <Button onClick={handleScheduleClick} variant="text" color="inherit" sx={{ fontWeight: 'bold' }}>
