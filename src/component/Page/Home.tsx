@@ -19,7 +19,10 @@ export const Home = () => {
         navigate('/Home')
     }
     const handleJoinClick=()=>{
-        navigate('/join')
+        navigate('/Home/join')
+    }
+    const handleChatClick=()=>{
+        navigate('/Home/Chat')
     }
     return (
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingLeft: 20, paddingTop:7 }}>
@@ -89,6 +92,7 @@ export const Home = () => {
                 {/* Chat Room Meet */}
                 <Button
                     variant="contained"
+                    onClick={handleChatClick}
                     sx={{
                         backgroundColor: '#7b7b7b',
                         color: 'white',

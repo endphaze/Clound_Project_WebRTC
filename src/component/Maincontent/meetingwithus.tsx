@@ -5,7 +5,7 @@ export const MeetingWithus=()=>{
     const navigate = useNavigate();
 
     const handleCancelClick = () => {
-        navigate('/'); //ไปที่ path /
+        navigate('/Home'); //ไปที่ path /
     };
     return(
         <Box 

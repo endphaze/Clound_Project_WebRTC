@@ -1,10 +1,11 @@
 import { Navbar } from "../navbar/navbar"
 import { MeetingWithus } from "../Maincontent/meetingwithus"
+import Menubar from "../navbar/menubar"
 
 export const Meeting=()=>{
     return(
         <div>
-            <Navbar/>
+            <Menubar/>
             <div>
             <MeetingWithus></MeetingWithus>
             </div>

@@ -6,7 +6,7 @@ export const MeetingPage = () => {
     const navigate = useNavigate();
 
     const handleJoinClick = () => {
-        navigate('/join'); //ไปที่ path 
+        navigate('/Home/join'); //ไปที่ path 
     };
     return (
         <Box sx={{ width: '100%', padding: 4, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>

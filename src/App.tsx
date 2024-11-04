@@ -61,6 +61,15 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route 
+          path="/Home/join" 
+          element={
+                  <ProtectedRoute>
+                  <div>
+                  <Meeting />
+                  </div>
+                  </ProtectedRoute>} 
+        />
 
         {/* หน้า Meeting ใน Home (ใช้ ProtectedRoute) */}
         <Route 

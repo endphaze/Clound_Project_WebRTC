@@ -5,8 +5,11 @@ import { useNavigate } from 'react-router-dom';
 export const Content1stPage = () => {
     const navigate = useNavigate();
 
-    const handleJoinClick = () => {
-        navigate('/join'); //ไปที่ path /join
+    const handleSignupClick = () => {
+        navigate('/signup'); //ไปที่ path /login
+    };
+    const handleLoginClick = () => {
+        navigate('/login'); //ไปที่ path /login
     };
 
     return (
@@ -21,11 +24,13 @@ export const Content1stPage = () => {
                     {/* ใส่รูป */}
                 </Box>
                 <Box>
-                    <Button variant="contained" sx={{ backgroundColor: '#fb9375', marginRight: 2 , fontWeight: 'bold', padding: '12px 24px', fontSize: '1.1rem' }}>
+                    <Button variant="contained" 
+                            onClick={handleSignupClick}
+                            sx={{ backgroundColor: '#fb9375', marginRight: 2 , fontWeight: 'bold', padding: '12px 24px', fontSize: '1.1rem' }}>
                         Get started
                     </Button>
                     <Button variant="contained" 
-                            onClick={handleJoinClick}
+                            onClick={handleLoginClick}
                             sx={{ backgroundColor: '#fb9375', fontWeight: 'bold', padding: '12px 24px', fontSize: '1.1rem' }}>
                         Join Meeting
                     </Button>
