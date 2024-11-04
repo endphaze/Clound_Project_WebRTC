@@ -1,12 +1,19 @@
-// backend/server.js
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const { Server } = require('socket.io');
+const http = require('http');
 
 const app = express();
 const port = 3001;
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:5173", // ระบุ origin ของ frontend
+        methods: ["GET", "POST"]
+    }
+});
 
-// เปิดใช้งาน CORS เพื่อให้ Frontend สามารถเรียกใช้ API จากเซิร์ฟเวอร์ได้
 app.use(cors());
 app.use(express.json());
 
@@ -27,19 +34,48 @@ connection.connect((err) => {
     console.log('Connected to the MySQL database');
 });
 
-// สร้าง API ตัวอย่าง
+// ตั้งค่า socket.io
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+
+    // ฟังการส่งข้อความและบันทึกลงฐานข้อมูล
+    socket.on('sendMessage', (data) => {
+        const { groupId, sender, content, timestamp } = data;
+
+        // บันทึกข้อความลงฐานข้อมูล
+        const sql = 'INSERT INTO messages (Group_id, Sender, Content, Timestamp) VALUES (?, ?, ?, ?)';
+        connection.query(sql, [groupId, sender, content, timestamp], (err) => {
+            if (err) {
+                console.error('Error saving message:', err);
+                return;
+            }
+
+            // broadcast ให้เฉพาะกลุ่มเดียวกันเห็นข้อความ
+            io.to(`group_${groupId}`).emit('receiveMessage', data);
+        });
+    });
+
+    // ฟังการเข้าร่วมห้องและเข้าร่วม "ห้อง" ใน socket.io
+    socket.on('joinGroup', (groupId) => {
+        socket.join(`group_${groupId}`);
+        console.log(`User ${socket.id} joined group ${groupId}`);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
+
+// ตัวอย่าง API
 app.get('/', (req, res) => {
     res.send('Hello from the Backend!');
 });
 
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
 
-
-// backend/server.js
-
-//signup
+// API สำหรับสร้างบัญชีผู้ใช้
 app.post('/signup', (req, res) => {
     const { username, password } = req.body;
     const sql = 'INSERT INTO credentail (Username, Password) VALUES (?, ?)';
@@ -52,7 +88,7 @@ app.post('/signup', (req, res) => {
     });
 });
 
-//login // Token
+// API สำหรับการเข้าสู่ระบบด้วยการสร้างโทเค็น JWT
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = '1234';
 
@@ -72,6 +108,7 @@ app.post('/login', (req, res) => {
     });
 });
 
+// API สำหรับการรับข้อมูลผู้ใช้โดยตรวจสอบผ่าน JWT
 app.get('/getUser', (req, res) => {
     const token = req.headers['authorization'];
 
@@ -96,7 +133,7 @@ app.get('/getUser', (req, res) => {
     });
 });
 
-// API สำหรับสร้าง Group ใหม่
+// API สำหรับสร้างกลุ่มใหม่
 app.post('/create-group', (req, res) => {
     const { groupName } = req.body;
 
@@ -115,7 +152,7 @@ app.post('/create-group', (req, res) => {
     });
 });
 
-
+// API สำหรับการดึงข้อมูลกลุ่มทั้งหมด
 app.get('/groups', (req, res) => {
     const sql = 'SELECT * FROM `group`';
     connection.query(sql, (err, results) => {
@@ -127,7 +164,7 @@ app.get('/groups', (req, res) => {
     });
 });
 
-// join
+// API สำหรับเข้าร่วมกลุ่มโดยดึงประวัติการแชทของกลุ่มนั้นๆ
 app.post('/join-group', (req, res) => {
     const { groupName } = req.body;
 
@@ -160,7 +197,7 @@ app.post('/join-group', (req, res) => {
     });
 });
 
-// ส่งข้อความและบันทึกลงฐานข้อมูล
+// API สำหรับส่งข้อความและบันทึกลงฐานข้อมูล
 app.post('/send-message', (req, res) => {
     const { groupId, sender, content, timestamp } = req.body;
 
@@ -178,7 +215,7 @@ app.post('/send-message', (req, res) => {
     });
 });
 
-// ดึงประวัติข้อความของห้องแชท
+// API สำหรับดึงประวัติข้อความของห้องแชท
 app.get('/messages', (req, res) => {
     const groupId = req.query.groupId;
 
@@ -195,7 +232,3 @@ app.get('/messages', (req, res) => {
         res.status(200).json(results);
     });
 });
-
-
-
-

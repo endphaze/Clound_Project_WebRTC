@@ -10,7 +10,7 @@ export const ScheduleMeeting = () => {
                     Schedule Meeting 
                 </Typography>
                 
-                {/* My Room */}
+                {/* My Room*/}
                 <Box sx={{ width: '100%', textAlign: 'left' }}>
                     <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold', color: 'black' }}>
                         My Room :

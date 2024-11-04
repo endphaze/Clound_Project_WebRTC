@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Box, TextField, Button, Typography, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert } from '@mui/material';
 import axios from 'axios';
+import { io } from 'socket.io-client';
+
+// กำหนดการเชื่อมต่อ Socket.IO
+const socket = io('http://localhost:3001');
 
 export const Chat = () => {
     const [message, setMessage] = useState<string>('');
@@ -20,6 +24,7 @@ export const Chat = () => {
             setUsername(storedUsername);
         }
 
+        // โหลดกลุ่มทั้งหมดเมื่อเริ่มต้น
         axios.get('http://localhost:3001/groups')
             .then(response => {
                 setGroups(response.data);
@@ -27,27 +32,43 @@ export const Chat = () => {
             .catch(error => {
                 console.error('Error fetching groups:', error);
             });
-    }, []);
+
+        // รับข้อความใหม่จากเซิร์ฟเวอร์
+        socket.on('receiveMessage', (data) => {
+            if (data.groupId === currentGroupId) {
+                setChatHistory((prevHistory) => [
+                    ...prevHistory,
+                    { text: data.content, sender: data.sender === username ? 'me' : 'other', name: data.sender, time: new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+                ]);
+            }
+        });
+
+        return () => {
+            socket.off('receiveMessage');
+        };
+    }, [username, currentGroupId]);
 
     const handleSendMessage = () => {
         if (message.trim() && currentGroupId) {
             const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' '); // แปลง timestamp เป็นรูปแบบที่ MySQL ยอมรับ
+            const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-            // เพิ่มข้อความลงใน chatHistory ทันที
-            setChatHistory([
-                ...chatHistory,
-                { text: message, sender: 'me', name: username, time: currentTime }
-            ]);
+            // ส่งข้อความไปยังเซิร์ฟเวอร์ผ่าน Socket.IO
+            socket.emit('sendMessage', {
+                groupId: currentGroupId,
+                sender: username,
+                content: message,
+                timestamp: timestamp
+            });
 
-            // ส่งข้อความไปยังเซิร์ฟเวอร์เพื่อบันทึกในฐานข้อมูล
+            // ส่งข้อความไปยัง backend เพื่อบันทึกในฐานข้อมูล
             axios.post('http://localhost:3001/send-message', {
                 groupId: currentGroupId,
                 sender: username,
                 content: message,
                 timestamp: timestamp
             }).then(() => {
-                setMessage(''); // เคลียร์ช่องข้อความหลังส่ง
+                setMessage(''); // ล้างช่องข้อความหลังจากส่ง
             }).catch(error => {
                 console.error('Error sending message:', error);
             });
@@ -70,21 +91,29 @@ export const Chat = () => {
     const handleJoinGroup = () => {
         axios.post('http://localhost:3001/join-group', { groupName: joinGroupName })
             .then(response => {
-                setChatHistory(response.data.messages.map((msg: { Content: string; Sender: string; Timestamp: string }) => ({
+                const { groupId, messages = [] } = response.data;
+    
+                setChatHistory(messages.map(msg => ({
                     text: msg.Content,
                     sender: msg.Sender === username ? 'me' : 'other',
                     name: msg.Sender,
                     time: new Date(msg.Timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 })));
                 setCurrentGroupName(joinGroupName);
-                setCurrentGroupId(response.data.groupId);
+                setCurrentGroupId(groupId);
                 setJoinDialogOpen(false);
                 setSnackbarOpen(true);
+    
+                // ส่ง joinGroup event ไปยัง Socket.IO
+                socket.emit('joinGroup', groupId); 
             })
             .catch(error => {
                 console.error('Error joining group:', error);
             });
     };
+    
+    
+    
 
     return (
         <Box sx={{ height: '100vh', display: 'flex' }}>
@@ -158,7 +187,6 @@ export const Chat = () => {
                 </Box>
             </Box>
 
-            {/* Join Group Dialog */}
             <Dialog open={joinDialogOpen} onClose={() => setJoinDialogOpen(false)}>
                 <DialogTitle>Join Group</DialogTitle>
                 <DialogContent>
@@ -182,7 +210,6 @@ export const Chat = () => {
                 </DialogActions>
             </Dialog>
 
-            {/* Snackbar for Join Success */}
             <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => setSnackbarOpen(false)}>
                 <Alert onClose={() => setSnackbarOpen(false)} severity="success">
                     Joined group {currentGroupName} successfully!
