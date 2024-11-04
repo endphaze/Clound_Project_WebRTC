@@ -232,3 +232,125 @@ app.get('/messages', (req, res) => {
         res.status(200).json(results);
     });
 });
+
+// API สำหรับสร้างห้องประชุมใหม่
+app.post('/create-meeting', (req, res) => {
+    const { meetingId, meetingName, ownerRoom } = req.body;
+
+    if (!meetingId || !meetingName || !ownerRoom) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    const sql = 'INSERT INTO meeting (Meeting_id, Meeting_Name, Owner_Room) VALUES (?, ?, ?)';
+    connection.query(sql, [meetingId, meetingName, ownerRoom], (err, result) => {
+        if (err) {
+            console.error('Error creating meeting:', err);
+            return res.status(500).json({ message: 'Error creating meeting' });
+        }
+        res.status(201).json({ message: 'Meeting created successfully' });
+    });
+});
+
+app.post('/join-meeting', (req, res) => {
+    const { meetingId } = req.body;
+
+    // ตรวจสอบว่ามี Meeting ID ถูกส่งมาหรือไม่
+    if (!meetingId) {
+        return res.status(400).json({ message: 'Meeting ID is required' });
+    }
+
+    // คำสั่ง SQL สำหรับตรวจสอบ Meeting ID
+    const sql = 'SELECT * FROM meeting WHERE Meeting_id = ?';
+    connection.query(sql, [meetingId], (err, results) => {
+        if (err) {
+            console.error('Error fetching meeting:', err);
+            return res.status(500).json({ message: 'Error fetching meeting' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Meeting not found' });
+        }
+
+        // ส่งข้อมูลห้องประชุมกลับไปให้ผู้เข้าร่วม
+        res.status(200).json({ meeting: results[0] });
+    });
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// เก็บข้อมูลผู้เข้าร่วมประชุมในแต่ละห้อง
+// เก็บข้อมูลผู้เข้าร่วมประชุมในแต่ละห้อง
+const participants = {};
+
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+
+    // เมื่อผู้ใช้เข้าร่วมห้องประชุม
+    socket.on('join-meeting', ({ meetingId, username }) => {
+        socket.join(meetingId);
+
+        // ถ้าไม่มีข้อมูลของห้องนี้ใน participants ให้สร้างใหม่
+        if (!participants[meetingId]) {
+            participants[meetingId] = [];
+        }
+        
+        // เพิ่มผู้ใช้ในรายการผู้เข้าร่วมของห้องนี้
+        participants[meetingId].push({ id: socket.id, username });
+
+        // ส่งรายชื่อผู้เข้าร่วมที่อัปเดตไปยังผู้ใช้ทุกคนในห้อง
+        io.to(meetingId).emit('update-participants', participants[meetingId]);
+        console.log(`User ${username} joined meeting ${meetingId}`);
+        console.log("Current participants in room:", participants[meetingId]);
+    });
+
+    // รับข้อความและกระจายให้ผู้เข้าร่วมในห้องเดียวกัน
+    socket.on('send-message', (data) => {
+        const { meetingId, message, sender } = data;
+        io.to(meetingId).emit('receive-message', { sender, message });
+    });
+
+    // จัดการสัญญาณ WebRTC (เช่น offer, answer, ice-candidate)
+    socket.on('webrtc-offer', (data) => {
+        const { meetingId, offer } = data;
+        socket.to(meetingId).emit('webrtc-offer', offer);
+    });
+
+    socket.on('webrtc-answer', (data) => {
+        const { meetingId, answer } = data;
+        socket.to(meetingId).emit('webrtc-answer', answer);
+    });
+
+    socket.on('webrtc-ice-candidate', (data) => {
+        const { meetingId, candidate } = data;
+        socket.to(meetingId).emit('webrtc-ice-candidate', candidate);
+    });
+
+    // จัดการเมื่อผู้ใช้ต้องการออกจากห้องประชุม
+    socket.on('leave-meeting', ({ meetingId, username }) => {
+        socket.leave(meetingId);
+
+        // ลบผู้ใช้ออกจากรายการผู้เข้าร่วมในห้อง
+        if (participants[meetingId]) {
+            participants[meetingId] = participants[meetingId].filter(user => user.id !== socket.id);
+
+            // ส่งรายชื่อผู้เข้าร่วมที่อัปเดตไปยังผู้ใช้ทุกคนในห้อง
+            io.to(meetingId).emit('update-participants', participants[meetingId]);
+        }
+        console.log(`User ${username} left meeting ${meetingId}`);
+        console.log("Current participants in room:", participants[meetingId]);
+    });
+
+    // จัดการเมื่อผู้ใช้ตัดการเชื่อมต่อ
+    socket.on('disconnect', () => {
+        for (const meetingId in participants) {
+            // ลบผู้ใช้จากห้องที่เขาเข้าร่วม
+            participants[meetingId] = participants[meetingId].filter(user => user.id !== socket.id);
+
+            // ส่งรายชื่อผู้เข้าร่วมที่อัปเดตไปยังผู้ใช้ทุกคนในห้อง
+            io.to(meetingId).emit('update-participants', participants[meetingId]);
+        }
+        console.log('User disconnected:', socket.id);
+    });
+});
+
+
+

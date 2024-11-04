@@ -12,6 +12,7 @@ import ScheduleMeeting from './component/Maincontent/schedulecontent';
 import { Home } from './component/Page/Home';
 import { Chat } from './component/Maincontent/chat';
 import ProtectedRoute from './component/ProtectedRoute'; // นำเข้า ProtectedRoute
+import MeetingRoom from './component/Maincontent/MeetingRoom';
 
 function App() {
   return (
@@ -105,6 +106,17 @@ function App() {
               <div>
                 <Menubar />
                 <Chat />
+              </div>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="Home/Meeting/:meetingId" 
+          element={
+            <ProtectedRoute>
+              <div>
+              <Menubar/>
+              <MeetingRoom/>
               </div>
             </ProtectedRoute>
           } 

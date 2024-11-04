@@ -93,7 +93,7 @@ export const Chat = () => {
             .then(response => {
                 const { groupId, messages = [] } = response.data;
     
-                setChatHistory(messages.map(msg => ({
+                setChatHistory(messages.map((msg: { Content: any; Sender: string; Timestamp: string | number | Date; }) => ({
                     text: msg.Content,
                     sender: msg.Sender === username ? 'me' : 'other',
                     name: msg.Sender,

@@ -1,31 +1,67 @@
-import React from 'react';
-import { Box, Typography, Button } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Typography, Button, Dialog, DialogTitle, DialogContent, TextField, DialogActions } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export const MeetingPage = () => {
     const navigate = useNavigate();
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [meetingId, setMeetingId] = useState('');
+    const [meetingName, setMeetingName] = useState('');
 
-    const handleJoinClick = () => {
-        navigate('/Home/join'); //ไปที่ path 
+    // ฟังก์ชันเปิด Dialog
+    const handleStartMeetingClick = () => {
+        setDialogOpen(true);
     };
+
+    // ฟังก์ชันปิด Dialog
+    const handleDialogClose = () => {
+        setDialogOpen(false);
+        setMeetingId('');
+        setMeetingName('');
+    };
+
+    // ฟังก์ชันสำหรับสร้างห้องประชุม
+    const handleCreateMeeting = () => {
+        const username = localStorage.getItem('username'); // ดึง username จาก Local Storage
+        if (meetingId && meetingName && username) {
+            // ส่งข้อมูลการสร้างห้องไปยัง backend
+            axios.post('http://localhost:3001/create-meeting', {
+                meetingId,
+                meetingName,
+                ownerRoom: username,
+            })
+            .then(response => {
+                console.log('Meeting created:', response.data);
+                setDialogOpen(false); // ปิด Dialog หลังจากสร้างห้องสำเร็จ
+                navigate(`/Home/Meeting/${meetingId}`); // ไปที่ห้องประชุมใหม่
+            })
+            .catch(error => {
+                console.error('Error creating meeting:', error);
+            });
+        }
+    };
+
+    // ฟังก์ชันสำหรับเข้าร่วมการประชุม
+    const handleJoinClick = () => {
+        navigate('/Home/join');
+    };
+
     return (
         <Box sx={{ width: '100%', padding: 4, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            {/* ส่วนหลักแบ่งเป็นสองคอลัมน์ */}
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', gap: 4 }}>
-                {/* คอลัมน์ซ้าย: รูปภาพ */}
                 <Box
                     component="img"
-                    src="https://cdn.discordapp.com/attachments/1266951871713775712/1302321513147666492/Meeting.PNG?ex=6727b0ec&is=67265f6c&hm=ec28cf72bee0c756b4d92587ca24dacc63e4555b90eca8563169340b7cdec446&" // URL ของรูปภาพที่คุณต้องการ
+                    src="https://cdn.discordapp.com/attachments/1266951871713775712/1302321513147666492/Meeting.PNG?ex=6727b0ec&is=67265f6c&hm=ec28cf72bee0c756b4d92587ca24dacc63e4555b90eca8563169340b7cdec446&"
                     alt="Meeting"
                     sx={{
-                        width: { xs: '100%', md: '50%' }, // ปรับขนาดให้เหมาะกับหน้าจอใหญ่และเล็ก
+                        width: { xs: '100%', md: '50%' },
                         maxWidth: 500,
                         height: 'auto',
                         borderRadius: 2,
                     }}
                 />
 
-                {/* คอลัมน์ขวา: ข้อความและปุ่ม */}
                 <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>
                         Video Conferencing
@@ -34,6 +70,7 @@ export const MeetingPage = () => {
                     <Button
                         variant="contained"
                         fullWidth
+                        onClick={handleStartMeetingClick}
                         sx={{
                             backgroundColor: '#1976d2',
                             color: 'white',
@@ -70,7 +107,37 @@ export const MeetingPage = () => {
                     </Button>
                 </Box>
             </Box>
+
+            {/* Dialog สำหรับการสร้างห้องประชุม */}
+            <Dialog open={dialogOpen} onClose={handleDialogClose}>
+                <DialogTitle>Enter Meeting Details</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        label="Meeting ID"
+                        fullWidth
+                        margin="dense"
+                        variant="outlined"
+                        value={meetingId}
+                        onChange={(e) => setMeetingId(e.target.value)}
+                    />
+                    <TextField
+                        label="Meeting Name"
+                        fullWidth
+                        margin="dense"
+                        variant="outlined"
+                        value={meetingName}
+                        onChange={(e) => setMeetingName(e.target.value)}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDialogClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleCreateMeeting} color="primary" variant="contained">
+                        Create Meeting
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };
-
