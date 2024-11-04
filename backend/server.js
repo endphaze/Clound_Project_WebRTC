@@ -281,6 +281,7 @@ app.post('/join-meeting', (req, res) => {
 // เก็บข้อมูลผู้เข้าร่วมประชุมในแต่ละห้อง
 const participants = {};
 
+// จัดการการเชื่อมต่อ socket.io
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
@@ -308,20 +309,23 @@ io.on('connection', (socket) => {
         io.to(meetingId).emit('receive-message', { sender, message });
     });
 
-    // จัดการสัญญาณ WebRTC (เช่น offer, answer, ice-candidate)
+    // จัดการ Signaling สำหรับ WebRTC
     socket.on('webrtc-offer', (data) => {
         const { meetingId, offer } = data;
-        socket.to(meetingId).emit('webrtc-offer', offer);
+        console.log(`Received WebRTC offer for meeting ${meetingId}`);
+        socket.to(meetingId).emit('webrtc-offer', { offer, senderId: socket.id });
     });
 
     socket.on('webrtc-answer', (data) => {
         const { meetingId, answer } = data;
-        socket.to(meetingId).emit('webrtc-answer', answer);
+        console.log(`Received WebRTC answer for meeting ${meetingId}`);
+        socket.to(meetingId).emit('webrtc-answer', { answer, senderId: socket.id });
     });
 
     socket.on('webrtc-ice-candidate', (data) => {
         const { meetingId, candidate } = data;
-        socket.to(meetingId).emit('webrtc-ice-candidate', candidate);
+        console.log(`Received WebRTC ICE candidate for meeting ${meetingId}`);
+        socket.to(meetingId).emit('webrtc-ice-candidate', { candidate, senderId: socket.id });
     });
 
     // จัดการเมื่อผู้ใช้ต้องการออกจากห้องประชุม

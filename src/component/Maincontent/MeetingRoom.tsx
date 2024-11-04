@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, Button, IconButton, Avatar } from '@mui/material';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import VideocamOffIcon from '@mui/icons-material/VideocamOff';
@@ -25,44 +25,100 @@ const MeetingRoom = () => {
     const [isMicOn, setIsMicOn] = useState(true);
     const username = localStorage.getItem('username') || 'Guest';
 
-    useEffect(() => {
-        console.log("Joining meeting:", meetingId, "with username:", username);
-        
-        // เข้าร่วมห้องประชุมผ่าน Socket.io และส่งข้อมูลชื่อผู้ใช้ไปให้ผู้ใช้คนอื่น
-        socket.emit('join-meeting', { meetingId, username });
+    const localVideoRef = useRef<HTMLVideoElement>(null);
+    const remoteVideoRef = useRef<HTMLVideoElement>(null);
+    const peerConnection = useRef<RTCPeerConnection | null>(null);
 
-        // เมื่อ component ถูก unmount
-        return () => {
-            console.log("Leaving meeting:", meetingId, "with username:", username);
-            socket.emit('leave-meeting', { meetingId, username });
-            socket.disconnect();  // ทำการ disconnect socket
+    useEffect(() => {
+        const initializePeerConnection = async () => {
+            peerConnection.current = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            });
+
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            stream.getTracks().forEach(track => {
+                peerConnection.current?.addTrack(track, stream);
+            });
+
+            if (localVideoRef.current) {
+                localVideoRef.current.srcObject = stream;
+            }
+
+            peerConnection.current.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('webrtc-ice-candidate', {
+                        meetingId,
+                        candidate: event.candidate,
+                    });
+                }
+            };
+
+            peerConnection.current.ontrack = (event) => {
+                const [stream] = event.streams;
+                if (remoteVideoRef.current) {
+                    remoteVideoRef.current.srcObject = stream;
+                }
+            };
+
+            console.log("Joining meeting:", meetingId, "with username:", username);
+            socket.emit('join-meeting', { meetingId, username });
         };
-    }, [meetingId, username]);
 
-    // ติดตั้งการฟังการอัปเดต participants ให้ทำงานตลอดเวลา
-    useEffect(() => {
-        // ฟังการอัปเดตรายชื่อผู้เข้าร่วมจาก server และอัปเดต state
+        initializePeerConnection();
+
         socket.on('update-participants', (users: Participant[]) => {
-            console.log("Participants updated from server:", users); // ตรวจสอบการอัปเดตของ participants
             setParticipants(users);
         });
 
-        // ทำความสะอาด listener เมื่อ component ถูก unmount เพื่อป้องกัน memory leak
-        return () => {
-            socket.off('update-participants');
-        };
-    }, []);
+        socket.on('webrtc-offer', async (data) => {
+            if (peerConnection.current) {
+                await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await peerConnection.current.createAnswer();
+                await peerConnection.current.setLocalDescription(answer);
+                socket.emit('webrtc-answer', { meetingId, answer });
+            }
+        });
 
-    // ฟังก์ชันสำหรับปุ่มออกจากห้อง
+        socket.on('webrtc-answer', async (data) => {
+            if (peerConnection.current) {
+                await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+            }
+        });
+
+        socket.on('webrtc-ice-candidate', (data) => {
+            if (peerConnection.current) {
+                peerConnection.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+        });
+
+        return () => {
+            socket.emit('leave-meeting', { meetingId, username });
+            socket.disconnect();
+            peerConnection.current?.close();
+        };
+    }, [meetingId, username]);
+
     const handleLeave = () => {
-        console.log("User clicked Leave button");
         socket.emit('leave-meeting', { meetingId, username });
-        socket.disconnect();  // ปิดการเชื่อมต่อ socket อย่างชัดเจน
-        navigate('/'); // เปลี่ยนเส้นทางเมื่อออกจากห้อง
+        socket.disconnect();
+        navigate('/');
     };
 
     const toggleVideo = () => setIsVideoOn(!isVideoOn);
     const toggleMic = () => setIsMicOn(!isMicOn);
+
+    useEffect(() => {
+        const setupMediaStream = async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            stream.getTracks().forEach(track => {
+                peerConnection.current?.addTrack(track, stream);
+            });
+            if (localVideoRef.current) {
+                localVideoRef.current.srcObject = stream;
+            }
+        };
+        setupMediaStream();
+    }, []);
 
     return (
         <Box sx={{
@@ -75,7 +131,6 @@ const MeetingRoom = () => {
             alignItems: 'center',
             padding: 2
         }}>
-            {/* ส่วนแสดงผู้เข้าร่วม */}
             <Box sx={{
                 display: 'flex',
                 flexWrap: 'wrap',
@@ -89,26 +144,48 @@ const MeetingRoom = () => {
                 {participants.map((participant) => (
                     <Box key={participant.id} sx={{
                         width: '45%',
-                        height: '45%',
+                        height: 'auto',
                         maxWidth: 300,
-                        maxHeight: 200,
                         backgroundColor: '#444',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        flexDirection: 'column',
                         borderRadius: 2,
+                        overflow: 'hidden'
                     }}>
-                        <Avatar sx={{ width: 60, height: 60, bgcolor: '#1976d2' }}>
-                            {participant.username[0]}
-                        </Avatar>
-                        <Typography variant="body1" sx={{ marginLeft: 1 }}>
-                            {participant.username}
-                        </Typography>
+                        {/* วิดีโอ */}
+                        <video
+                            ref={participant.username === username ? localVideoRef : remoteVideoRef}
+                            autoPlay
+                            muted
+                            style={{
+                                width: '100%',
+                                height: 'auto',
+                                objectFit: 'cover',
+                            }}
+                        />
+
+                        {/* Avatar และชื่อผู้ใช้ */}
+                        <Box sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: 1,
+                            width: '100%',
+                            backgroundColor: '#333',
+                        }}>
+                            <Avatar sx={{ width: 40, height: 40, bgcolor: '#1976d2' }}>
+                                {participant.username[0]}
+                            </Avatar>
+                            <Typography variant="body1" sx={{ marginLeft: 1 }}>
+                                {participant.username}
+                            </Typography>
+                        </Box>
                     </Box>
                 ))}
             </Box>
 
-            {/* แถบควบคุมที่ด้านล่าง */}
             <Box sx={{
                 display: 'flex',
                 justifyContent: 'space-around',
