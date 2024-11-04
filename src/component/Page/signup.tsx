@@ -1,8 +1,39 @@
 import { Box, Typography, TextField, Button } from '@mui/material';
+import { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export const SignUp = () => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [message, setMessage] = useState('');
+    const navigate = useNavigate(); // ใช้ useNavigate เพื่อเปลี่ยนเส้นทาง
+
+    const handleSignUp = async () => {
+        if (password !== confirmPassword) {
+            setMessage('Passwords do not match');
+            return;
+        }
+
+        try {
+            const response = await axios.post('http://localhost:3001/signup', {
+                username,
+                password
+            });
+            setMessage(response.data.message);
+
+            // ถ้าสมัครสมาชิกสำเร็จ เปลี่ยนเส้นทางไปหน้า /login
+            if (response.status === 201) {
+                navigate('/login');
+            }
+        } catch (error) {
+            setMessage('Error creating user');
+        }
+    };
+
     return (
-        <Box 
+        <Box
             sx={{
                 display: 'flex',
                 flexDirection: { xs: 'column', md: 'row' },
@@ -14,30 +45,29 @@ export const SignUp = () => {
             }}
         >
             {/* คอลัมน์ซ้าย: รูปภาพและคำบรรยาย */}
-            <Box 
-                sx={{ 
-                    textAlign: 'center', 
-                    flex: 1, 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    alignItems: { xs: 'center'}, 
-                    marginLeft: { md: '10%' } // เพิ่ม marginLeft เพื่อให้รูปชิดซ้ายในหน้าจอใหญ่
+            <Box
+                sx={{
+                    textAlign: 'center',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: { xs: 'center' },
+                    marginLeft: { md: '10%' }
                 }}
             >
-                <Box 
-                    component="img" 
-                    src="https://cdn.discordapp.com/attachments/1274054168755306628/1302296341061570664/SIGNUP.PNG?ex=6727997b&is=672647fb&hm=6bbae916f07f0754e0ab297bf3b1a6183a26978bbb165409f964d50980564934&" 
-                    alt="Sign Up Illustration" 
+                <Box
+                    component="img"
+                    src="https://cdn.discordapp.com/attachments/1274054168755306628/1302296341061570664/SIGNUP.PNG?ex=6727997b&is=672647fb&hm=6bbae916f07f0754e0ab297bf3b1a6183a26978bbb165409f964d50980564934&"
+                    alt="Sign Up Illustration"
                     sx={{ width: '70%', maxWidth: 300, marginBottom: 2 }}
                 />
                 <Typography variant="subtitle1" sx={{ fontStyle: 'italic', color: '#555' }}>
                     “Meeting with your class <br /> Meeting with your team”
                 </Typography>
-                
             </Box>
 
             {/* คอลัมน์ขวา: แบบฟอร์ม Sign Up */}
-            <Box 
+            <Box
                 sx={{
                     flex: 1,
                     backgroundColor: 'white',
@@ -45,7 +75,7 @@ export const SignUp = () => {
                     boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
                     borderRadius: 2,
                     maxWidth: 400,
-                    marginRight: { md: '15%' }, // เพิ่ม marginRight เพื่อขยับกล่อง Input เข้ากลางในหน้าจอใหญ่
+                    marginRight: { md: '15%' }
                 }}
             >
                 <Typography variant="h4" sx={{ fontWeight: 'bold', marginBottom: 2, textAlign: 'center' }}>
@@ -56,6 +86,8 @@ export const SignUp = () => {
                     variant="outlined"
                     fullWidth
                     margin="normal"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                 />
                 <TextField
                     label="Password"
@@ -63,6 +95,8 @@ export const SignUp = () => {
                     type="password"
                     fullWidth
                     margin="normal"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                 />
                 <TextField
                     label="Confirm Password"
@@ -70,10 +104,12 @@ export const SignUp = () => {
                     type="password"
                     fullWidth
                     margin="normal"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                 />
-                <Button 
-                    variant="contained" 
-                    fullWidth 
+                <Button
+                    variant="contained"
+                    fullWidth
                     sx={{
                         backgroundColor: '#fb9375',
                         color: 'white',
@@ -83,9 +119,15 @@ export const SignUp = () => {
                             backgroundColor: '#e57373',
                         },
                     }}
+                    onClick={handleSignUp}
                 >
                     Sign Up
                 </Button>
+                {message && (
+                    <Typography variant="subtitle1" color="error" align="center" sx={{ marginTop: 2 }}>
+                        {message}
+                    </Typography>
+                )}
             </Box>
         </Box>
     );

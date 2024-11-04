@@ -1,18 +1,41 @@
-
 import { Box, Typography, TextField, Button, Link } from '@mui/material';
+import { useState } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 export const Login = () => {
-
     const navigate = useNavigate();
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [message, setMessage] = useState('');
 
     const handleSignUpClick = () => {
         navigate('/signup');
     };
-    
-    const handleHomeClick = () => {
-        navigate('/Home');
+
+    const handleLogin = async () => {
+        try {
+            const response = await axios.post('http://localhost:3001/login', {
+                username,
+                password
+            });
+            if (response.status === 200) {
+                // บันทึก token ใน Local Storage
+                localStorage.setItem('token', response.data.token); 
+                // เปลี่ยนเส้นทางไปที่หน้า Home
+                navigate('/home');
+            }
+        } catch (error) {
+            const err = error as any; // แคสต์ error เป็น any เพื่อข้ามการตรวจสอบประเภท
+        
+            if (err.response && err.response.status === 401) {
+                setMessage('Invalid username or password');
+            } else {
+                setMessage('An error occurred. Please try again.');
+            }
+        }
     };
+    
 
     return (
         <Box 
@@ -46,6 +69,8 @@ export const Login = () => {
                     variant="outlined"
                     fullWidth
                     margin="normal"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                 />
 
                 {/* Password Field */}
@@ -55,13 +80,15 @@ export const Login = () => {
                     type="password"
                     fullWidth
                     margin="normal"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                 />
 
                 {/* ปุ่ม Sign in */}
                 <Button 
                     variant="contained" 
                     fullWidth 
-                    onClick={handleHomeClick}
+                    onClick={handleLogin}
                     sx={{
                         backgroundColor: '#fb9375',
                         color: 'white',
@@ -75,6 +102,12 @@ export const Login = () => {
                 >
                     Sign in
                 </Button>
+
+                {message && (
+                    <Typography variant="subtitle1" color="error" align="center" sx={{ marginTop: 2 }}>
+                        {message}
+                    </Typography>
+                )}
 
                 {/* ลิงก์ Sign up */}
                 <Box sx={{ textAlign: 'center', mt: 1 }}>
@@ -91,3 +124,5 @@ export const Login = () => {
         </Box>
     );
 };
+
+export default Login;
