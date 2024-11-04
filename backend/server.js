@@ -19,9 +19,9 @@ app.use(express.json());
 
 // ตั้งค่าและเชื่อมต่อ MySQL Database
 const connection = mysql.createConnection({
-    host: 'localhost', // ใช้ localhost ถ้า MySQL รันอยู่ในเครื่องเดียวกัน
-    user: 'root', // ชื่อผู้ใช้ MySQL
-    password: 'Cowan2559', // รหัสผ่าน MySQL
+    host: 'database-1.cjc42ks8urc4.us-east-1.rds.amazonaws.com', // ใช้ localhost ถ้า MySQL รันอยู่ในเครื่องเดียวกัน
+    user: 'admin', // ชื่อผู้ใช้ MySQL
+    password: '#LIdw~N2x3J8:m->VN~1]XuTJ1)4', // รหัสผ่าน MySQL
     database: 'webrtc', // ชื่อ Database ของคุณ
     port: 3306
 });

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, Typography, Button, Dialog, DialogTitle, DialogContent, TextField, DialogActions } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import pic from "../../assets/Meeting.png"
 
 export const MeetingPage = () => {
     const navigate = useNavigate();
@@ -52,7 +53,7 @@ export const MeetingPage = () => {
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', gap: 4 }}>
                 <Box
                     component="img"
-                    src="https://cdn.discordapp.com/attachments/1266951871713775712/1302321513147666492/Meeting.PNG?ex=6727b0ec&is=67265f6c&hm=ec28cf72bee0c756b4d92587ca24dacc63e4555b90eca8563169340b7cdec446&"
+                    src={pic}
                     alt="Meeting"
                     sx={{
                         width: { xs: '100%', md: '50%' },

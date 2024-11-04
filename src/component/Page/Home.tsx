@@ -5,6 +5,7 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import ForumIcon from '@mui/icons-material/Forum';
 import { useNavigate } from 'react-router-dom';
+import pic from "../../assets/Home.png"
 
 export const Home = () => {
 
@@ -114,7 +115,7 @@ export const Home = () => {
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
                 <Box
                     component="img"
-                    src="https://cdn.discordapp.com/attachments/1266951871713775712/1302336052622655518/Home.PNG?ex=6727be77&is=67266cf7&hm=69fdde0a49ccc5ad5e45576a31408b8432ffb4f978e60ec913b25f2456b33cf2&" // Replace with the actual link for the video call image
+                    src={pic}
                     alt="Video Call Illustration"
                     sx={{ maxWidth: '100%', height: 'auto' }}
                 />

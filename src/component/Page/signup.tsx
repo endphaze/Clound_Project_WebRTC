@@ -2,7 +2,7 @@ import { Box, Typography, TextField, Button } from '@mui/material';
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
+import pic from "../../assets/SIGNUP.png"
 export const SignUp = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -57,7 +57,7 @@ export const SignUp = () => {
             >
                 <Box
                     component="img"
-                    src="https://cdn.discordapp.com/attachments/1274054168755306628/1302296341061570664/SIGNUP.PNG?ex=6727997b&is=672647fb&hm=6bbae916f07f0754e0ab297bf3b1a6183a26978bbb165409f964d50980564934&"
+                    src={pic}
                     alt="Sign Up Illustration"
                     sx={{ width: '70%', maxWidth: 300, marginBottom: 2 }}
                 />

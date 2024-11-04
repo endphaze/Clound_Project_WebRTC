@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-
+import pic from "../../assets/1stpagePic.png"
 export const Content1stPage = () => {
     const navigate = useNavigate();
 
@@ -41,7 +41,7 @@ export const Content1stPage = () => {
             {/* ฝั่งขวา */}
             <Box 
             component="img" 
-            src="https://cdn.discordapp.com/attachments/1266951871713775712/1302025009484529664/1stpagePic.PNG?ex=67269cc8&is=67254b48&hm=15969f6da9f5f91f5f20f26c19c5b0061b5d8076c4ec00f9a03b73193b83da37&"
+            src={pic}
             alt="Description of the image"
             width="45%"
 

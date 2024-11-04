@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, TextField, Button, MenuItem, Select, FormControl } from '@mui/material';
-
+import pic from "../../assets/Schedule.png"
 export const ScheduleMeeting = () => {
     return (
         <Box sx={{ width: '100%', padding: 4, display: 'flex', justifyContent: 'flex-start', gap: 4 }}>
@@ -125,7 +125,7 @@ export const ScheduleMeeting = () => {
             <Box sx={{ width: { xs: '100%', md: '50%' }, display: 'flex', justifyContent: 'center' }}>
                 <Box
                     component="img"
-                    src="https://cdn.discordapp.com/attachments/1266951871713775712/1302329304809738320/Schedule.PNG?ex=6727b82e&is=672666ae&hm=a4e6f8cdc59b0a95a2c23541e0133341c9a003aac0d75901b87fecf840599cf7&" // ใส่ URL ของรูปภาพที่นี่
+                    src={pic}
                     alt="Schedule Illustration"
                     sx={{ maxWidth: '100%', height: 'auto' }}
                 />
