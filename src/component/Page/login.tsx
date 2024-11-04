@@ -19,15 +19,17 @@ export const Login = () => {
                 username,
                 password
             });
+
             if (response.status === 200) {
-                // บันทึก token ใน Local Storage
-                localStorage.setItem('token', response.data.token); 
-                // เปลี่ยนเส้นทางไปที่หน้า Home
+                // เก็บ token และ username ลงใน Local Storage
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('username', username); // บันทึก username สำหรับการแสดงผล
+
+                // นำผู้ใช้ไปยังหน้า Home
                 navigate('/home');
             }
         } catch (error) {
-            const err = error as any; // แคสต์ error เป็น any เพื่อข้ามการตรวจสอบประเภท
-        
+            const err = error as any;
             if (err.response && err.response.status === 401) {
                 setMessage('Invalid username or password');
             } else {
@@ -35,7 +37,6 @@ export const Login = () => {
             }
         }
     };
-    
 
     return (
         <Box 
@@ -48,12 +49,10 @@ export const Login = () => {
                 padding: 2,
             }}
         >
-            {/* หัวข้อ Sign In */}
             <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 4 }}>
                 Sign In
             </Typography>
 
-            {/* กล่องแบบฟอร์ม Sign In */}
             <Box 
                 sx={{
                     width: 300,
@@ -63,7 +62,6 @@ export const Login = () => {
                     backgroundColor: 'white',
                 }}
             >
-                {/* Username Field */}
                 <TextField
                     label="Username"
                     variant="outlined"
@@ -73,7 +71,6 @@ export const Login = () => {
                     onChange={(e) => setUsername(e.target.value)}
                 />
 
-                {/* Password Field */}
                 <TextField
                     label="Password"
                     variant="outlined"
@@ -84,7 +81,6 @@ export const Login = () => {
                     onChange={(e) => setPassword(e.target.value)}
                 />
 
-                {/* ปุ่ม Sign in */}
                 <Button 
                     variant="contained" 
                     fullWidth 
@@ -109,18 +105,12 @@ export const Login = () => {
                     </Typography>
                 )}
 
-                {/* ลิงก์ Sign up */}
                 <Box sx={{ textAlign: 'center', mt: 1 }}>
                     <Link underline="hover" sx={{ fontSize: '0.9rem', color: '#555' }} onClick={handleSignUpClick}>
                         Sign up ?
                     </Link>
                 </Box>
             </Box>
-
-            {/* ข้อความเพิ่มเติมด้านล่าง */}
-            <Typography variant="caption" sx={{ color: '#aaa', mt: 4, textAlign: 'center' }}>
-                “you can sign up if you cannot sign in”
-            </Typography>
         </Box>
     );
 };

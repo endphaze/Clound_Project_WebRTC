@@ -96,6 +96,106 @@ app.get('/getUser', (req, res) => {
     });
 });
 
+// API สำหรับสร้าง Group ใหม่
+app.post('/create-group', (req, res) => {
+    const { groupName } = req.body;
+
+    if (!groupName) {
+        return res.status(400).json({ message: 'Group name is required' });
+    }
+
+    const sql = 'INSERT INTO `group` (Group_name) VALUES (?)';
+    connection.query(sql, [groupName], (err, result) => {
+        if (err) {
+            console.error('Error creating group:', err);
+            return res.status(500).json({ message: 'Error creating group' });
+        }
+
+        res.status(201).json({ message: 'Group created successfully', groupId: result.insertId });
+    });
+});
+
+
+app.get('/groups', (req, res) => {
+    const sql = 'SELECT * FROM `group`';
+    connection.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching groups:', err);
+            return res.status(500).json({ message: 'Error fetching groups' });
+        }
+        res.status(200).json(results);
+    });
+});
+
+// join
+app.post('/join-group', (req, res) => {
+    const { groupName } = req.body;
+
+    if (!groupName) {
+        return res.status(400).json({ message: 'Group name is required' });
+    }
+
+    const groupQuery = 'SELECT Group_id FROM `group` WHERE Group_name = ?';
+    connection.query(groupQuery, [groupName], (err, results) => {
+        if (err) {
+            console.error('Error joining group:', err);
+            return res.status(500).json({ message: 'Error joining group' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        const groupId = results[0].Group_id;
+
+        const messageQuery = 'SELECT * FROM messages WHERE Group_id = ? ORDER BY Timestamp ASC';
+        connection.query(messageQuery, [groupId], (err, messages) => {
+            if (err) {
+                console.error('Error fetching messages:', err);
+                return res.status(500).json({ message: 'Error fetching messages' });
+            }
+
+            res.status(200).json({ groupId, messages });
+        });
+    });
+});
+
+// ส่งข้อความและบันทึกลงฐานข้อมูล
+app.post('/send-message', (req, res) => {
+    const { groupId, sender, content, timestamp } = req.body;
+
+    if (!groupId || !sender || !content || !timestamp) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    const sql = 'INSERT INTO messages (Group_id, Sender, Content, Timestamp) VALUES (?, ?, ?, ?)';
+    connection.query(sql, [groupId, sender, content, timestamp], (err, result) => {
+        if (err) {
+            console.error('Error saving message:', err);
+            return res.status(500).json({ message: 'Error saving message' });
+        }
+        res.status(201).json({ message: 'Message sent successfully' });
+    });
+});
+
+// ดึงประวัติข้อความของห้องแชท
+app.get('/messages', (req, res) => {
+    const groupId = req.query.groupId;
+
+    if (!groupId) {
+        return res.status(400).json({ message: 'Group ID is required' });
+    }
+
+    const sql = 'SELECT * FROM messages WHERE Group_id = ? ORDER BY Timestamp ASC';
+    connection.query(sql, [groupId], (err, results) => {
+        if (err) {
+            console.error('Error fetching messages:', err);
+            return res.status(500).json({ message: 'Error fetching messages' });
+        }
+        res.status(200).json(results);
+    });
+});
+
 
 
 
