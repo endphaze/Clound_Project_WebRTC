@@ -3,6 +3,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import pic from "../../assets/SIGNUP.png"
+
 export const SignUp = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');

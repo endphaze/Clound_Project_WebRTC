@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import pic from "../../assets/1stpagePic.png"
+
 export const Content1stPage = () => {
     const navigate = useNavigate();
 
